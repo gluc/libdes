@@ -12,3 +12,9 @@
 vignettes/*.html
 vignettes/*.pdf
 .Rproj.user
+
+src/*.a
+src/*.o
+src/*.so
+src/*.dll
+src/*.exe
