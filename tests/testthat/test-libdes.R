@@ -23,21 +23,22 @@ test_that("roundtrip", {
   #name of the target encrypted file
   fileEnc <- paste0(fileIn, ".enc")
   
-  argv = c("-E", "-u", "-k", "Ab4qY9qm", fileIn, fileEnc)
+  key <- "Ab4qY9qm"
   
-  #call the new method "calldes" in the libdes.bbg.dll
-  res <- .C("calldes", 
-            argv = argv, 
-            PACKAGE = "libdes.bbg")
+  #call the new method "callRDES" in the libdes.dll
   
+  result <- .C( "callRDES", as.integer( 1 ), key, fileIn, fileEnc, "", "" )
   
   # now decrypt
   
   fileDec <- paste0(fileIn, ".dec")
-  argv = c("-D", "-u", "-k", "Ab4qY9qm", fileEnc, fileDec)
-  res <- .C("calldes", 
-            argv = argv, 
-            PACKAGE = "datalicenseR")
+  
+  result <- .C("callRDES", 
+     as.integer( 0 ),
+     key,
+     fileEnc,
+     fileDec, "", "")
+  
   
   #read in decrypted file
   helloBaby <- readChar(fileDec, file.info(fileDec)$size)
