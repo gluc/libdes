@@ -193,9 +193,7 @@ int s;
 #endif
 	}
 
-int main(argc,argv)
-int argc;
-char **argv;
+int callSPEED(int argc, char **argv)
 	{
 	long count;
 	static unsigned char buf[BUFSIZE];

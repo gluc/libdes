@@ -426,9 +426,7 @@ int s;
 	fprintf(stderr,"%s bytes per sec = %12.2f (%5.1fuS)\n",name, \
 		tm[index]*8,1.0e6/tm[index]);
 
-int main(argc,argv)
-int argc;
-char **argv;
+int callDESOpts(int argc, char **argv)
 	{
 	long count;
 	static unsigned char buf[BUFSIZE];

@@ -111,33 +111,12 @@ int uudecode();
 #endif
 
 #ifdef VMS
-#define EXIT(a) exit(a&0x10000000)
+#define EXIT(a) return(a&0x10000000)
 #else
-#define EXIT(a) exit(a)
+#define EXIT(a) return(a)
 #endif
 
-#define BUFSIZE (8*1024)
-#define VERIFY  1
-#define KEYSIZ	8
-#define KEYSIZB 1024 /* should hit tty line limit first :-) */
-char key[KEYSIZB+1];
-int do_encrypt,longk=0;
-FILE *DES_IN,*DES_OUT,*CKSUM_OUT;
-char uuname[200];
-unsigned char uubuf[50];
-int uubufnum=0;
-#define INUUBUFN	(45*100)
-#define OUTUUBUF	(65*100)
-unsigned char b[OUTUUBUF];
-unsigned char bb[300];
-des_cblock cksum={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-char cksumname[200]="";
-
-int vflag,cflag,eflag,dflag,kflag,bflag,fflag,sflag,uflag,flag3,hflag,error;
-
-int main(argc, argv)
-int argc;
-char **argv;
+int callDES(int argc, char **argv)
 	{
 	int i;
 	struct stat ins,outs;
@@ -145,10 +124,10 @@ char **argv;
 	char *in=NULL,*out=NULL;
 
 	vflag=cflag=eflag=dflag=kflag=hflag=bflag=fflag=sflag=uflag=flag3=0;
-	error=0;
-	memset(key,0,sizeof(key));
+	libdes_error=0;
+	memset(key,0,KEYSIZB+1);
 
-	for (i=1; i<argc; i++)
+	for (i=0; i<argc; i++)
 		{
 		p=argv[i];
 		if ((p[0] == '-') && (p[1] != '\0'))
@@ -212,7 +191,7 @@ char **argv;
 					if ((i+1) == argc)
 						{
 						fputs("must have a key with the -k option\n",stderr);
-						error=1;
+						libdes_error=1;
 						}
 					else
 						{
@@ -226,7 +205,7 @@ char **argv;
 					break;
 				default:
 					fprintf(stderr,"'%c' unknown flag\n",p[-1]);
-					error=1;
+					libdes_error=1;
 					break;
 					}
 				}
@@ -238,10 +217,10 @@ char **argv;
 			else if (out == NULL)
 				out=argv[i];
 			else
-				error=1;
+				libdes_error=1;
 			}
 		}
-	if (error) usage();
+	if (libdes_error) usage();
 	/* We either
 	 * do checksum or
 	 * do encrypt or
@@ -363,7 +342,7 @@ NULL
 		fputc('\n',stderr);
 		}
 
-	EXIT(1);
+	return;
 	}
 
 void doencryption()
@@ -468,7 +447,7 @@ void doencryption()
 			}
 
 	des_set_key((C_Block *)kk,ks);
-	memset(key,0,sizeof(key));
+	memset(key,0,KEYSIZB+1 );
 	memset(kk,0,sizeof(kk));
 	/* woops - A bug that does not showup under unix :-( */
 	memset(iv,0,sizeof(iv));
@@ -689,11 +668,11 @@ problems:
 	memset(iv2,0,sizeof(iv2));
 	memset(kk,0,sizeof(kk));
 	memset(k2,0,sizeof(k2));
-	memset(uubuf,0,sizeof(uubuf));
+	memset(uubuf,0,50);
 	memset(b,0,sizeof(b));
 	memset(bb,0,sizeof(bb));
 	memset(cksum,0,sizeof(cksum));
-	if (Exit) EXIT(Exit);
+	if (Exit) return;
 	}
 
 int uufwrite(data, size, num, fp)

@@ -305,9 +305,7 @@ static int cfb64_test();
 static int ede_cfb64_test();
 #endif
 
-int main(argc,argv)
-int argc;
-char *argv[];
+int callDESTest(int argc, char **argv)
 	{
 	int i,j,err=0;
 	des_cblock in,out,outin,iv3;
@@ -724,7 +722,9 @@ char *argv[];
 		err=1;
 		}
 	printf("\n");
-	exit(err);
+	if ( err ) {
+		return err;
+	}
 	return(0);
 	}
 

@@ -64,9 +64,7 @@
 
 #include "des.h"
 
-int main(argc,argv)
-int argc;
-char *argv[];
+int callRPW(int argc,char **argv)
 	{
 	des_cblock k,k1;
 	int i;
@@ -93,12 +91,12 @@ char *argv[];
 		for (i=0; i<8; i++)
 			printf("%02x ",k1[i]);
 		printf("\n");
-		exit(1);
+		return(1);
 		}
 	else
 		{
 		printf("error %d\n",i);
-		exit(0);
+		return(0);
 		}
 #ifdef LINT
 	return(0);

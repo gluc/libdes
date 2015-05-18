@@ -507,4 +507,24 @@ YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
 
 extern const DES_LONG des_SPtrans[8][64];
 
+#define BUFSIZE (8*1024)
+#define VERIFY  1
+#define KEYSIZ  8
+#define KEYSIZB 1024 /* should hit tty line limit first :-) */
+extern char key[];
+extern int do_encrypt,longk;
+extern FILE *DES_IN,*DES_OUT,*CKSUM_OUT;
+extern char uuname[];
+extern unsigned char uubuf[];
+extern int uubufnum;
+#define INUUBUFN        (45*100)
+#define OUTUUBUF        (65*100)
+extern unsigned char b[OUTUUBUF];
+extern unsigned char bb[300];
+extern des_cblock cksum;
+extern char cksumname[];
+
+extern int vflag,cflag,eflag,dflag,kflag,bflag,fflag,sflag,uflag,flag3,hflag,libdes_error;
+
+
 #endif
