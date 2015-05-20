@@ -1,5 +1,13 @@
 
 #' Encrypt a file with the DES algorithm
+#' 
+#' @param sourceFile The path to the file that should be encrypted
+#' @param encryptedFile The path to the target file
+#' @param key The key (either a character string of arbitrary length, or a 56bit HEX key)
+#' @param SUNOS Use SUNOS?
+#' @param HEX_KEY Should the key be interpreted as HEX?
+#' @param ECB Use ECB?
+#' @param UUENC Whether to use UU Encoding
 #'
 #' @export
 EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
@@ -16,6 +24,14 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
 
 
 #' Decrypt a file with the DES algorithm
+#' 
+#' @param sourceFile The path to the file that should be decrypted
+#' @param decryptedFile The path to the target file
+#' @param key The key (either a character string of arbitrary length, or a 56bit HEX key)
+#' @param SUNOS Use SUNOS?
+#' @param HEX_KEY Should the key be interpreted as HEX?
+#' @param ECB Use ECB?
+#' @param UUENC Whether to use UU Encoding
 #'
 #' @export
 DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
@@ -33,6 +49,12 @@ DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY =
 
 #' Encrypt a file with the Triple DES algorithm
 #'
+#' @param sourceFile The path the the file that should be encrypted
+#' @param encryptedFile The path to the target file
+#' @param key The 56bit HEX key
+#' @param ECB Use ECB?
+#' @param UUENC Whether the files should be UU encoded
+#'
 #' @export
 EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UUENC = FALSE) {
   
@@ -46,6 +68,12 @@ EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UU
 
 
 #' Decrypt a file with the Triple DES algorithm
+#'
+#' @param sourceFile The path the the file that should be decrypted
+#' @param decryptedFile The path to the target file
+#' @param key The 56bit HEX key
+#' @param ECB Use ECB?
+#' @param UUENC Whether the files should be UU encoded
 #'
 #' @export
 DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE) {
@@ -61,6 +89,9 @@ DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UU
 
 #' Encrypt a character string
 #' 
+#' @param text A character string
+#' @param key The key as a character string
+#' 
 #' @export
 Encrypt <- function(text, key) {
   r <- charToRaw(text)
@@ -72,6 +103,9 @@ Encrypt <- function(text, key) {
 
 
 #' Decrypt a character string
+#' 
+#' @param text An encrypted character string
+#' @param key The key as a character string
 #' 
 #' @export
 Decrypt <- function(text, key) {

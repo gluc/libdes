@@ -7,6 +7,21 @@
 EncryptFile(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE,
   ECB = FALSE, UUENC = FALSE)
 }
+\arguments{
+\item{sourceFile}{The path to the file that should be encrypted}
+
+\item{encryptedFile}{The path to the target file}
+
+\item{key}{The key (either a character string of arbitrary length, or a 56bit HEX key)}
+
+\item{SUNOS}{Use SUNOS?}
+
+\item{HEX_KEY}{Should the key be interpreted as HEX?}
+
+\item{ECB}{Use ECB?}
+
+\item{UUENC}{Whether to use UU Encoding}
+}
 \description{
 Encrypt a file with the DES algorithm
 }

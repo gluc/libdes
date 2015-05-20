@@ -7,6 +7,17 @@
 EncryptFileTripleDES(sourceFile, encryptedFile, key, ECB = FALSE,
   UUENC = FALSE)
 }
+\arguments{
+\item{sourceFile}{The path the the file that should be encrypted}
+
+\item{encryptedFile}{The path to the target file}
+
+\item{key}{The 56bit HEX key}
+
+\item{ECB}{Use ECB?}
+
+\item{UUENC}{Whether the files should be UU encoded}
+}
 \description{
 Encrypt a file with the Triple DES algorithm
 }

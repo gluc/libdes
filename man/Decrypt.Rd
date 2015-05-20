@@ -6,6 +6,11 @@
 \usage{
 Decrypt(text, key)
 }
+\arguments{
+\item{text}{An encrypted character string}
+
+\item{key}{The key as a character string}
+}
 \description{
 Decrypt a character string
 }

@@ -6,6 +6,11 @@
 \usage{
 Encrypt(text, key)
 }
+\arguments{
+\item{text}{A character string}
+
+\item{key}{The key as a character string}
+}
 \description{
 Encrypt a character string
 }
