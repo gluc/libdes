@@ -1,4 +1,4 @@
 library(testthat)
-library(libdes.bbg)
+library(libdes)
 
-test_check("libdes.bbg")
+test_check("libdes")
