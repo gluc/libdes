@@ -9,9 +9,9 @@
 #define RLIBDES_MODE_ECB	0x00000020 // if set, then encryption mode is ECB, if not - CBC 
 #define RLIBDES_UUENC_ENCRYPTED	0x00000040 // set if encrypted data is\should be uuencoded (uuencHeaderFile must be set)
 
-int callRDES( unsigned long *flags, char  **key, char  **inFile, char **outFile, char **cbcChecksumOutFile, char **uuencHeaderFile );
+int callRDES( unsigned int *flags, char  **key, char  **inFile, char **outFile, char **cbcChecksumOutFile, char **uuencHeaderFile );
 
-SEXP rdesEncryptCBC( char **key, SEXP data );
-SEXP rdesDecryptCBC( char **key, SEXP encrypted );
+SEXP rdesEncrypt( SEXP key, SEXP data );
+SEXP rdesDecrypt( SEXP key, SEXP encrypted );
 
 #endif

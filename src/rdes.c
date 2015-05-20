@@ -118,95 +118,210 @@ extern int uudecode();
 #define EXIT(a) return(a)
 #endif
 
-SEXP rdesEncrypt( char **pkey, char **data )
+#define ER( T ) fprintf( stderr, "(%s:%i) %s\n", __FILE__, __LINE__, (T) )
+
+
+// this function must be envoked from R with .Call  
+//
+// rdesEncrypt: encrypts raw bytes and returns encrypted data or R_NilValue on error
+//
+// error notices go to stderr, to chage this just replace fprintf in #define ER to
+// 	whatever you like (syslog, R_printf, etc.. )
+//
+//
+// encryption mode, output format and other options are all hardcoded in function body
+// and could be changed to whatever mode you need by default:
+// - set bflag to make it ECB instead of CBC
+// - unset uflag to get binary output instead of uuencoded
+// - set hflag to change key string format from ascii to hex
+// ...
+//
+// original "filename", required for uuencoded output is hardcoded: it is "encrypted.data"
+//
+// params:
+// 	vkey is a key string, ascii (can be changed to hex, see above)
+// 	vdata - data to be encrypted, a RAW vector from R
+//
+// RAW vector can be obtained in R with convertion (charToRaw for strings)
+// 	or with coercion(as.raw for other data). In latter case of coercion,
+// 	you must ensure first that your data can be successfuly coeced to RAW
+// 	and will not produce warnings like this:
+// 	1: NAs introduced by coercion
+// 	2: out-of-range values treated as 0 in coercion to raw
+//
+
+SEXP rdesEncrypt( SEXP vkey, SEXP vdata )
 {
-	SEXP r_encrypted;
+	unsigned char *data = NULL;
+	int data_len = 0;
+	SEXP pkey = NULL;
 	
-	unsigned char *rbyte = NULL;
+	unsigned char *b = NULL;
+	int b_len = 0;
+
+	SEXP pdata = NULL;
+	SEXP r_encrypted = R_NilValue;
+	
 	unsigned char *l_encrypted = NULL;
 	int l_encrypted_len = 0;
 
-        int i, r, P=0;
+        int i, r, P=2;
 
-	if ( !pkey || !*pkey ) {
-		fprintf( stderr, "key required\n" );
-		return NULL;
+	PROTECT( vkey );
+	PROTECT( vdata );
+	
+
+	if ( !vkey || !Rf_isString( vkey ) || !(pkey = STRING_ELT( vkey, 0 )) ) {
+		UNPROTECT( P );
+		ER( "key string required" );
+		return R_NilValue;
 	}
-	if ( !data || !*data ) {
-		fprintf( stderr, "data required\n" );
-		return NULL;
+
+	if ( !vdata || !(data = RAW( vdata )) ||
+			!(data_len = LENGTH( vdata )) ) {
+		ER( "data bytes required" );
+		return R_NilValue;
 	}
 
 	/* simple DES encryption with binary output */
 	cflag=0;
+	eflag=1;
 	do_encrypt=DES_ENCRYPT;
 	dflag=0;
-	strncpy(key,*pkey,KEYSIZB);
+	strncpy(key, CHAR( pkey ),KEYSIZB);
 	hflag=0;
 	bflag=0;
-	uflag=0;
+	uflag=1;
 	flag3=0;
 
-        data = PROTECT( coerceVector( data, RAWSXP )); P++;
-	r = LENGTH( data );
+	b_len = l_encrypted_len = data_len + 32; 
 
-	printf( "[%i,%i]\n", r, strlen( *data ) );
-
-#if 0
-	if ( doencryption_inmemory( buf_in, buf_in_len, r_encrypted->xxx, &l_encryped_len ) ) {
-		return NULL;
+	
+	if ( uflag ) {
+		l_encrypted_len = b_len * 2 + 12;
+		b = R_alloc( 1, b_len );
 	}
-        for(i=length(x), r=0; i>0; i--, r++) {
-           REAL(res)[r] = REAL(x)[i-1];
-        }
-#endif
+
+        r_encrypted = PROTECT( allocVector( RAWSXP, l_encrypted_len )); P++;
+	l_encrypted = RAW( r_encrypted );
+
+	if ( doencryption_inmemory( data, data_len,
+			b ? b : l_encrypted,
+			b ? &b_len : &l_encrypted_len ) ) {
+		UNPROTECT( P );
+		ER( "encryption failed" );
+		return R_NilValue;
+	}
+
+	if ( uflag ) {
+		uuwrite_mem( b, b_len, l_encrypted, &l_encrypted_len );
+	} 
+
+	SETLENGTH( r_encrypted, l_encrypted_len );
+
         UNPROTECT(P);
 
 	return r_encrypted;
 }
 
-SEXP rdesDecrypt( char **pkey, SEXP r_encrypted )
+// this function must be envoked from R with .Call  
+//
+// rdesDecrypt: decrypts raw bytes and returns decrypted data or R_NilValue on error
+//
+// error notices go to stderr 
+//
+// from R it must be invoked with .Call  
+//
+// decryption mode, input format and other options are all hardcoded in function body
+// and must be in sync with rdesEncrypt
+//
+// params:
+// 	vkey is a key string, ascii (can be changed to hex, see above)
+// 	vencrypted is a RAW vector from R
+// 		RAW can be obtained in R with convertion (charToRaw) or with coercion(as.raw)
+
+SEXP rdesDecrypt( SEXP vkey, SEXP vencrypted )
 {
-	SEXP r_data;
+	SEXP pkey = NULL;
+	SEXP r_data = R_NilValue;
 	
+	unsigned char *b = NULL;
+	int b_len = 0;
 	unsigned char *l_data = NULL;
 	int l_data_len = 0;
+	unsigned char *l_encrypted = NULL;
+	int l_encrypted_len = 0;
 
-        int i, r, P=0;
+        int i, r, P=2;
 
-	if ( !pkey || !*pkey ) {
-		fprintf( stderr, "key required\n" );
-		return NULL;
+	PROTECT( vkey );
+	PROTECT( vencrypted );
+
+	if ( !vkey || !Rf_isString( vkey ) || !(pkey = STRING_ELT( vkey, 0 )) )  {
+		UNPROTECT( P );
+		ER( "key string required" );
+		return R_NilValue;
+	}
+
+	if ( !vencrypted || !(l_encrypted = RAW( vencrypted )) ||
+			!(l_encrypted_len = LENGTH( vencrypted )) ) {
+		UNPROTECT( P );
+		ER( "data bytes required" );
+		return R_NilValue;
 	}
 
 	/* simple DES DEcryption with binary input */
 	cflag=0;
 	do_encrypt=DES_DECRYPT;
-	dflag=0;
-	strncpy(key,*pkey,KEYSIZB);
+	eflag=0;
+	dflag=1;
+	strncpy(key, CHAR( pkey ),KEYSIZB);
 	hflag=0;
 	bflag=0;
-	uflag=0;
+	uflag=1;
 	flag3=0;
 
-	l_data_len = length( r_encrypted );
+	
+	l_data_len = l_encrypted_len;
         PROTECT( r_data = allocVector(RAWSXP, l_data_len )); P++;
+	l_data = RAW( r_data );
 
-#if 0
-	if ( doencryption_inmemory( buf_in, buf_in_len, r_encrypted->xxx, &l_encryped_len ) ) {
-		return NULL;
+	if ( uflag ) {
+		b_len = l_data_len;
+		b = R_alloc( 1, b_len );
+		uuread_mem( l_encrypted, l_encrypted_len, b, &b_len );
+		l_encrypted = b;
+		l_encrypted_len = b_len;
 	}
-        for(i=length(x), r=0; i>0; i--, r++) {
-           REAL(res)[r] = REAL(x)[i-1];
-        }
-#endif
+
+	if ( doencryption_inmemory( l_encrypted, l_encrypted_len, l_data, &l_data_len ) ) {
+		UNPROTECT( P );
+		ER( "decryption failed" );
+		return R_NilValue;
+	}
+
+	SETLENGTH( r_data, l_data_len );
+
         UNPROTECT(P);
 
 	return r_data;
 }
 
+// this function must be invoked from R with .C
+//
+// callRDES: encrypts or decrypts file1 and writes output to file2
+//
+// pflags - pointer to integer, bitmask from RLIBDES_XXXX bits, defined in rdes.h
+// 	these bits define key format, encryption mode, etc.
+//
+// pkey - pointer to key string
+// pinFile, poutFile - pointrs to in- and out- filenames
+// pcbcChecksumFile - filename for cbc checksum
+// puuencHeaderFile - filename to be set as original data file name in case of
+// 	uuencoded output
+
 int
-callRDES( unsigned long *pflags, char  **pkey,
+callRDES( unsigned int *pflags, char  **pkey,
 	char  **pinFile, char **poutFile,
 	char **pcbcChecksumFile, char **puuencHeaderFile )
 {
@@ -309,14 +424,14 @@ callRDES( unsigned long *pflags, char  **pkey,
 		(strcmp(in,out) == 0))
 #endif
 			{
-			fputs("input and output file are the same\n",stderr);
+			ER("input and output file are the same" );
 			EXIT(3);
 			}
 
 	if (!pkey)
 		if (des_read_pw_string(key,KEYSIZB+1,"Enter key:",eflag?VERIFY:0))
 			{
-			fputs("password error\n",stderr);
+			ER("password error");
 			EXIT(2);
 			}
 
@@ -390,7 +505,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 	if (buf == NULL) {
 		if (    (( buf=(unsigned char *)Malloc(BUFSIZE+8)) == NULL) ||
 				((obuf=(unsigned char *)Malloc(BUFSIZE+8)) == NULL)) {
-			fputs("Not enough memory\n",stderr);
+			ER("Not enough memory" );
 			Exit=10;
 			goto problems;
 		}
@@ -399,7 +514,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 #endif
 
 	if ( !buf_in || !buf_in_len || !buf_out || !buf_out_len ) {
-		fprintf( stderr, "both input and output buffers required\n" );
+		ER( "both input and output buffers required" );
 		return -1;
 	}
 	buf_in_pos = buf_in;
@@ -419,7 +534,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 			else if ((*p <= 'F') && (*p >= 'A'))
 				k=(*p-'A'+10)<<4;
 			else {
-				fputs("Bad hex key\n",stderr);
+				ER("Bad hex key" );
 				Exit=9;
 				goto problems;
 			}
@@ -431,7 +546,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 			else if ((*p <= 'F') && (*p >= 'A'))
 				k|=(*p-'A'+10);
 			else {
-				fputs("Bad hex key\n",stderr);
+				ER("Bad hex key");
 				Exit=9;
 				goto problems;
 			}
@@ -469,7 +584,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 
 	des_set_key((C_Block *)kk,ks);
 	memset(key,0, KEYSIZB + 1);
-	memset(kk,0,KEYSIZB + 1);
+	memset(kk,0,sizeof( kk ));
 	/* woops - A bug that does not showup under unix :-( */
 	memset(iv,0,sizeof(iv));
 	memset(iv2,0,sizeof(iv2));
@@ -542,13 +657,13 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 				buf_out_pos += l;
 				buf_out_bytes_left -= l;
 			} else {
-				fprintf( stderr, "output buffer too small\n" );
+				ER( "output buffer too small" );
 				Exit = 8;
 				goto problems;
 			}
 		}
 		*buf_out_len = buf_out_pos - buf_out;
-	} else /* decrypt */ {
+	} else /* decrypt */ if ( dflag ) {
 		ex=1;
 		for (;buf_in_bytes_left;) {
 			/* first "read" */
@@ -608,7 +723,7 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 				last=obuf[l-1];
 
 				if ((last > 7) || (last < 0)) {
-					fputs("The file was not decrypted correctly.\n", stderr);
+					ER("The file was not decrypted correctly." );
 					last=0;
 				}
 				l=l-8+last;
@@ -620,13 +735,14 @@ doencryption_inmemory( unsigned char *buf_in, int buf_in_len, unsigned char *buf
 				buf_out_pos += l;
 				buf_out_bytes_left -= l;
 			} else {
-				fprintf( stderr, "output buffer too small\n" );
+				ER( "output buffer too small" );
 				Exit = 8;
 				goto problems;
 			}
 			l=ll;
 			if ( l == 0 ) break;
 		}
+		*buf_out_len = buf_out_pos - buf_out;
 	}
 
 problems:
@@ -648,4 +764,139 @@ problems:
 	}
 #endif
 	return Exit;
+}
+
+/* ENC is the basic 1-character encoding function to make a char printing */
+#define ENC(c) ((c) ? ((c) & 077) + ' ': '`')
+
+/* single-character decode */
+#define DEC(c)	(((c) - ' ') & 077)
+
+int uuwrite_mem( unsigned char *data, int len, unsigned char *uu, int *uu_len )
+{
+	char buf[80];
+	register int i, n;
+	unsigned char *uu_pos = uu;
+	int uu_bytes_left = 0;
+	int l_uu_len = 0;
+	int uu_step = 0;
+	unsigned char *data_pos = data;
+	int data_bytes_left = len;
+	char *p = NULL;
+
+	if( !data || !len || !uu || !uu_len ) {
+		ER( "invalid args" );
+		return -1;
+	}
+
+	uu_bytes_left = *uu_len;
+	l_uu_len = sprintf( uu, "begin 644 ecnrypted.data\n" );
+	uu_bytes_left -= l_uu_len;
+	uu_pos += l_uu_len;
+
+	while( data_bytes_left ) {
+		/* 1 (up to) 45 character line */
+		n = 45;
+		if ( data_bytes_left < n ) {
+			n = data_bytes_left;
+		}
+		p = data_pos;
+		data_pos += n;
+		data_bytes_left -= n;
+
+		*uu_pos = ENC( n );
+		uu_pos ++; l_uu_len ++;
+
+		for (i=0; i<n; i += 3) {
+			register int c1, c2, c3, c4;
+
+			c1 = *p >> 2;
+			c2 = (*p << 4) & 060 | (p[1] >> 4) & 017;
+			c3 = (p[1] << 2) & 074 | (p[2] >> 6) & 03;
+			c4 = p[2] & 077;
+			uu_pos[ 0 ] = ENC(c1);
+			uu_pos[ 1 ] = ENC(c2);
+			uu_pos[ 2 ] = ENC(c3);
+			uu_pos[ 3 ] = ENC(c4);
+			uu_pos += 4; l_uu_len += 4;
+			p+=3;
+		}
+
+		*uu_pos = '\n';
+		uu_pos ++; l_uu_len ++;
+	}
+
+	l_uu_len += sprintf( uu_pos, " \nend\n");
+	*uu_len = l_uu_len;
+
+	return 0;
+}
+
+
+int uuread_mem( unsigned char *uu, int uu_len, unsigned char *data, int *data_len )
+{
+	char *body = NULL;
+	char buf[80];
+	char *bp;
+	int n, i, expected;
+	unsigned char *uu_pos = uu;
+	int uu_bytes_left = uu_len;
+	unsigned char *next = NULL;
+	unsigned char *data_pos = data;
+	int uu_step = 0;
+		
+	
+	if ( strncmp( uu, "begin ", 6 ) ){
+		ER("invalid uuencoded data: begin not found" );
+	}
+	if ( !(uu_pos = strchr( uu, '\n' ))  ) {
+		ER("invalid uuencoded data: newline not found" );
+	}
+	uu_pos += 1;
+	uu_bytes_left -= (uu_pos - uu);
+
+	while( uu_bytes_left ) {
+		memset( buf, 0, sizeof( buf ) );
+		next = strchr( uu_pos, '\n' );
+		uu_step = next - uu_pos + 1;
+		memcpy( buf, uu_pos, uu_step );
+
+		n = DEC(buf[0]);
+		if ((n <= 0) || (buf[0] == '\n'))
+			break;
+
+		/* Calculate expected # of chars and pad if necessary */
+		expected = ((n+2)/3)<<2;
+		for (i = strlen(buf)-1; i <= expected; i++) buf[i] = ' ';
+
+		bp = &buf[1];
+		while (n > 0) {
+			int c1, c2, c3;
+
+			c1 = DEC(*bp) << 2 | DEC(bp[1]) >> 4;
+			c2 = DEC(bp[1]) << 4 | DEC(bp[2]) >> 2;
+			c3 = DEC(bp[2]) << 6 | DEC(bp[3]);
+			if (n >= 1) {
+				*data_pos = c1;
+				data_pos ++;
+			}
+			if (n >= 2) {
+				*data_pos = c2;
+				data_pos ++;
+			}
+			if (n >= 3) {
+				*data_pos = c3;
+				data_pos ++;
+			}
+
+			bp += 4;
+			n -= 3;
+		}
+
+		uu_pos = next + 1;
+		uu_bytes_left -= uu_step;
+	}
+
+	*data_len = data_pos - data;
+	return 0;
 }
