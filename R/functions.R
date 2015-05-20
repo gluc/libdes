@@ -15,6 +15,75 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
 }
 
 
+#' Decrypt a file with the DES algorithm
+#'
+#' @export
+DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
+  
+  opts <- GetOptions(ENCRYPT = FALSE, 
+                     SUNOS, 
+                     HEX_KEY,
+                     THREEDES = FALSE, 
+                     ECB, 
+                     UUENC)
+  
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "" )
+}
+
+
+#' Encrypt a file with the Triple DES algorithm
+#'
+#' @export
+EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UUENC = FALSE) {
+  
+  opts <- GetOptions(ENCRYPT = TRUE, 
+                     THREEDES = TRUE, 
+                     ECB = ECB, 
+                     UUENC = UUENC)
+  
+  .C( "callRDES", opts, key, sourceFile, encryptedFile, "", "" )
+}
+
+
+#' Decrypt a file with the Triple DES algorithm
+#'
+#' @export
+DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE) {
+  
+  opts <- GetOptions(ENCRYPT = FALSE, 
+                     THREEDES = TRUE, 
+                     ECB = ECB, 
+                     UUENC = UUENC)
+  
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "" )
+}
+
+
+#' Encrypt a character string
+#' 
+#' @export
+Encrypt <- function(text, key) {
+  r <- charToRaw(text)
+  res <- .Call("rdesEncrypt", key, r)
+  resChar <- rawToChar(res)
+  return (resChar)
+}
+
+
+
+#' Decrypt a character string
+#' 
+#' @export
+Decrypt <- function(text, key) {
+  r <- charToRaw(text)
+  res <- .Call("rdesDecrypt", key, r)
+  resChar <- rawToChar(res)
+  return (resChar)
+}
+
+
+
+
 GetOptions <- function(ENCRYPT = FALSE, SUNOS = FALSE, HEX_KEY = FALSE, THREEDES = FALSE, ECB = FALSE, UUENC = FALSE) {
   #define RLIBDES_ENCRYPT       0x00000001     // encrypt if set, else decrypt 
   #define RLIBDES_SUNOS_COMPAT 0x00000002 // enable/disable SUNOS compatibility 
@@ -30,5 +99,5 @@ GetOptions <- function(ENCRYPT = FALSE, SUNOS = FALSE, HEX_KEY = FALSE, THREEDES
   if (THREEDES) opts <- opts + 10
   if (ECB) opts <- opts + 20
   if (UUENC) opts <- opts + 40
-  return (opts)
+  return (as.integer(opts))
 }

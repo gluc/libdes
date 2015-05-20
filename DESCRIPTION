@@ -3,7 +3,7 @@ Type: Package
 Title: Encrypt and decrypt using the DES algorithm
 Version: 1.0.0
 Date: 2015-05-14
-Author: Christoph Glur et al.
+Author: Christoph Glur
 Maintainer: Christoph Glur <christoph.glur@ipub.com>
 Description: Wrapper around the libdes package. The DES algorithm 
   uses a symmetric key of 56bit length. Today, the algorithm is not considered
