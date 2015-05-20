@@ -1,10 +1,15 @@
 Package: libdes
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
+Title: Encrypt and decrypt using the DES algorithm
+Version: 1.0.0
 Date: 2015-05-14
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Author: Christoph Glur et al.
+Maintainer: Christoph Glur <christoph.glur@ipub.com>
+Description: Wrapper around the libdes package. The DES algorithm 
+  uses a symmetric key of 56bit length. Today, the algorithm is not considered
+  as safe anymore. However, this package can still be useful for interaction with
+  legacy applications, such as Bloomberg Datalicense. Also, use this for very
+  simple and quick encryption and decryption of files and R objects in situations
+  where no military strength security is required.
 License: MIT + file LICENSE
 Suggests: testthat

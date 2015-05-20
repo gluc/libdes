@@ -15,3 +15,4 @@ LaTeX: pdfLaTeX
 BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --debug --no-multiarch --with-keep.source --no-configure
+PackageRoxygenize: rd,collate,namespace
