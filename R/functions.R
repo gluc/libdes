@@ -10,7 +10,7 @@
 #' @param UUENC Whether to use UU Encoding
 #'
 #' @export
-EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
+EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
   
   opts <- GetOptions(ENCRYPT = TRUE, 
                      SUNOS, 
@@ -19,7 +19,7 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
                      ECB, 
                      UUENC)
     
-  .C( "callRDES", opts, key, sourceFile, encryptedFile, "", "" )
+  .C( "callRDES", opts, key, sourceFile, encryptedFile, "", uuencFileName )
 }
 
 
@@ -34,7 +34,7 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
 #' @param UUENC Whether to use UU Encoding
 #'
 #' @export
-DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
+DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
   
   opts <- GetOptions(ENCRYPT = FALSE, 
                      SUNOS, 
@@ -43,7 +43,7 @@ DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY =
                      ECB, 
                      UUENC)
   
-  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "" )
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", uuencFileName)
 }
 
 
@@ -56,14 +56,14 @@ DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY =
 #' @param UUENC Whether the files should be UU encoded
 #'
 #' @export
-EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UUENC = FALSE) {
+EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
   
   opts <- GetOptions(ENCRYPT = TRUE, 
                      THREEDES = TRUE, 
                      ECB = ECB, 
                      UUENC = UUENC)
   
-  .C( "callRDES", opts, key, sourceFile, encryptedFile, "", "" )
+  .C( "callRDES", opts, key, sourceFile, encryptedFile, "", uuencFileName )
 }
 
 
@@ -76,14 +76,14 @@ EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UU
 #' @param UUENC Whether the files should be UU encoded
 #'
 #' @export
-DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE) {
+DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
   
   opts <- GetOptions(ENCRYPT = FALSE, 
                      THREEDES = TRUE, 
                      ECB = ECB, 
                      UUENC = UUENC)
   
-  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "" )
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", uuencFileName )
 }
 
 
@@ -123,15 +123,15 @@ GetOptions <- function(ENCRYPT = FALSE, SUNOS = FALSE, HEX_KEY = FALSE, THREEDES
   #define RLIBDES_SUNOS_COMPAT 0x00000002 // enable/disable SUNOS compatibility 
   #define RLIBDES_CBC_CHECKSUM  0x00000004 // calculate cbc-checksum or not 
   #define RLIBDES_KEY_FMT_HEX    0x00000008 // if key string is in hex instead of b64 
-  #define RLIBDES_3DES             0x00000010 // set to use 3DES 
-  #define RLIBDES_MODE_ECB    0x00000020 // if set, then encryption mode is ECB, if not - CBC 
-  #define RLIBDES_UUENC_ENCRYPTED 0x00000040 // set if encrypted data is\should be uuencoded (uuencHeaderFile must be set)
+  #define RLIBDES_3DES             0x00000016 // set to use 3DES 
+  #define RLIBDES_MODE_ECB    0x00000032 // if set, then encryption mode is ECB, if not - CBC 
+  #define RLIBDES_UUENC_ENCRYPTED 0x00000064 // set if encrypted data is\should be uuencoded (uuencHeaderFile must be set)
   opts <- 0
   if (ENCRYPT) opts <- opts + 1
   if (SUNOS) opts <- opts + 2
   if (HEX_KEY) opts <- opts + 8
-  if (THREEDES) opts <- opts + 10
-  if (ECB) opts <- opts + 20
-  if (UUENC) opts <- opts + 40
+  if (THREEDES) opts <- opts + 16
+  if (ECB) opts <- opts + 32
+  if (UUENC) opts <- opts + 64
   return (as.integer(opts))
 }

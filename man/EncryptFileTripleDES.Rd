@@ -5,7 +5,7 @@
 \title{Encrypt a file with the Triple DES algorithm}
 \usage{
 EncryptFileTripleDES(sourceFile, encryptedFile, key, ECB = FALSE,
-  UUENC = FALSE)
+  UUENC = FALSE, uuencFileName = "")
 }
 \arguments{
 \item{sourceFile}{The path the the file that should be encrypted}

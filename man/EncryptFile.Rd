@@ -5,7 +5,7 @@
 \title{Encrypt a file with the DES algorithm}
 \usage{
 EncryptFile(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE,
-  ECB = FALSE, UUENC = FALSE)
+  ECB = FALSE, UUENC = FALSE, uuencFileName = "")
 }
 \arguments{
 \item{sourceFile}{The path to the file that should be encrypted}
