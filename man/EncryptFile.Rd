@@ -21,6 +21,8 @@ EncryptFile(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE,
 \item{ECB}{Use ECB?}
 
 \item{UUENC}{Whether to use UU Encoding}
+
+\item{uuencFileName}{The original file name to add as a header to the Uuencoded file}
 }
 \description{
 Encrypt a file with the DES algorithm

@@ -8,6 +8,7 @@
 #' @param HEX_KEY Should the key be interpreted as HEX?
 #' @param ECB Use ECB?
 #' @param UUENC Whether to use UU Encoding
+#' @param uuencFileName The original file name to add as a header to the Uuencoded file
 #'
 #' @export
 EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
@@ -34,7 +35,7 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
 #' @param UUENC Whether to use UU Encoding
 #'
 #' @export
-DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
+DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
   
   opts <- GetOptions(ENCRYPT = FALSE, 
                      SUNOS, 
@@ -43,7 +44,7 @@ DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY =
                      ECB, 
                      UUENC)
   
-  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", uuencFileName)
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "")
 }
 
 
@@ -54,6 +55,7 @@ DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY =
 #' @param key The 56bit HEX key
 #' @param ECB Use ECB?
 #' @param UUENC Whether the files should be UU encoded
+#' @param uuencFileName The original file name to add as a header to the Uuencoded file
 #'
 #' @export
 EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
@@ -76,14 +78,14 @@ EncryptFileTripleDES <- function(sourceFile, encryptedFile, key, ECB = FALSE, UU
 #' @param UUENC Whether the files should be UU encoded
 #'
 #' @export
-DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
+DecryptFileTripleDES <- function(sourceFile, decryptedFile, key, ECB = FALSE, UUENC = FALSE) {
   
   opts <- GetOptions(ENCRYPT = FALSE, 
                      THREEDES = TRUE, 
                      ECB = ECB, 
                      UUENC = UUENC)
   
-  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", uuencFileName )
+  .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "" )
 }
 
 

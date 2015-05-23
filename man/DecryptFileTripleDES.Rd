@@ -5,7 +5,7 @@
 \title{Decrypt a file with the Triple DES algorithm}
 \usage{
 DecryptFileTripleDES(sourceFile, decryptedFile, key, ECB = FALSE,
-  UUENC = FALSE, uuencFileName = "")
+  UUENC = FALSE)
 }
 \arguments{
 \item{sourceFile}{The path the the file that should be decrypted}

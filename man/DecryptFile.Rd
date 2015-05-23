@@ -5,7 +5,7 @@
 \title{Decrypt a file with the DES algorithm}
 \usage{
 DecryptFile(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE,
-  ECB = FALSE, UUENC = FALSE, uuencFileName = "")
+  ECB = FALSE, UUENC = FALSE)
 }
 \arguments{
 \item{sourceFile}{The path to the file that should be decrypted}

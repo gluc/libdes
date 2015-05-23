@@ -17,6 +17,8 @@ EncryptFileTripleDES(sourceFile, encryptedFile, key, ECB = FALSE,
 \item{ECB}{Use ECB?}
 
 \item{UUENC}{Whether the files should be UU encoded}
+
+\item{uuencFileName}{The original file name to add as a header to the Uuencoded file}
 }
 \description{
 Encrypt a file with the Triple DES algorithm
