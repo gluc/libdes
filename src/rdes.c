@@ -401,6 +401,7 @@ callRDES( unsigned int *pflags, char  **pkey,
 		}
 		strncpy(uuname,*puuencHeaderFile,200);
 	}
+
 	/* We either
 	 * do checksum or
 	 * do encrypt or
@@ -429,31 +430,29 @@ callRDES( unsigned int *pflags, char  **pkey,
 			}
 
 	if (!pkey)
-		if (des_read_pw_string(key,KEYSIZB+1,"Enter key:",eflag?VERIFY:0))
-			{
-			ER("password error");
-			EXIT(2);
-			}
+	if (des_read_pw_string(key,KEYSIZB+1,"Enter key:",eflag?VERIFY:0)) {
+		ER("password error");
+		EXIT(2);
+	}
 
-	if (in == NULL)
+	if (in == NULL) {
 		DES_IN=stdin;
-	else if ((DES_IN=fopen(in,"r")) == NULL)
-		{
-		perror("opening input file");
+	} else if ((DES_IN=fopen(in,"r")) == NULL) {
+		ER( in );
+		perror( "" );
 		EXIT(4);
-		}
+	}
 
 	CKSUM_OUT=stdout;
-	if (out == NULL)
-		{
+
+	if (out == NULL) {
 		DES_OUT=stdout;
 		CKSUM_OUT=stderr;
-		}
-	else if ((DES_OUT=fopen(out,"w")) == NULL)
-		{
-		perror("opening output file");
+	} else if ((DES_OUT=fopen(out,"w+")) == NULL) {
+		ER( out );
+		perror( "" );
 		EXIT(5);
-		}
+	}
 
 #ifdef MSDOS
 	/* This should set the file to binary mode. */
@@ -466,9 +465,20 @@ callRDES( unsigned int *pflags, char  **pkey,
 	}
 #endif
 
+	fprintf( stderr, "vflag[%i] cflag[%i] eflag[%i] dflag[%i] kflag[%i] hflag[%i] bflag[%i] fflag[%i] sflag[%i] uflag[%i] flag3[%i] doencrypt[%i]\n",
+		vflag,cflag,eflag,dflag,kflag,hflag,bflag,fflag,sflag,uflag,flag3,do_encrypt );
+	
+
 	doencryption();
-	fclose(DES_IN);
-	fclose(DES_OUT);
+
+	if ( DES_IN != stdin ) {
+		fclose(DES_IN);
+		DES_IN = NULL;
+	}
+	if ( DES_OUT != stdout ) {
+		fclose(DES_OUT);
+		DES_OUT = NULL;
+	}
 	EXIT(0);
 }
 

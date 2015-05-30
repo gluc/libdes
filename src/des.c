@@ -83,6 +83,8 @@
 #endif
 #include "des.h"
 
+#define FCLOSE( F ) if ( F && F != stdin && F != stdout ) { fclose( F ); F = NULL; }
+
 #if defined(__STDC__) || defined(VMS) || defined(M_XENIX) || defined(MSDOS)
 #include <string.h>
 #endif
@@ -97,7 +99,8 @@ void usage(void);
 void doencryption(void);
 int uufwrite(unsigned char *data, int size, unsigned int num, FILE *fp);
 void uufwriteEnd(FILE *fp);
-int uufread(unsigned char *out,int size,unsigned int num,FILE *fp);
+int uufread( unsigned char *out, int size, unsigned int num,
+		FILE *fp, int *pdone, int *pvalid, int *pstart );
 int uuencode(unsigned char *in,int num,unsigned char *out);
 int uudecode(unsigned char *in,int num,unsigned char *out);
 #else
@@ -274,7 +277,7 @@ int callDES(int argc, char **argv)
 		DES_IN=stdin;
 	else if ((DES_IN=fopen(in,"r")) == NULL)
 		{
-		perror("opening input file");
+		perror(in);
 		EXIT(4);
 		}
 
@@ -286,7 +289,7 @@ int callDES(int argc, char **argv)
 		}
 	else if ((DES_OUT=fopen(out,"w")) == NULL)
 		{
-		perror("opening output file");
+		perror(out);
 		EXIT(5);
 		}
 
@@ -302,8 +305,8 @@ int callDES(int argc, char **argv)
 #endif
 
 	doencryption();
-	fclose(DES_IN);
-	fclose(DES_OUT);
+	FCLOSE(DES_IN);
+	FCLOSE(DES_OUT);
 	EXIT(0);
 	}
 
@@ -354,6 +357,9 @@ void doencryption()
 #endif
 
 	register int i;
+	int uu_done = 0;
+	int uu_valid = 0;
+	int uu_start = 1;
 	des_key_schedule ks,ks2;
 	unsigned char iv[8],iv2[8];
 	char *p;
@@ -560,7 +566,7 @@ void doencryption()
 			{
 			if (ex) {
 				if (uflag)
-					l=uufread(buf,1,BUFSIZE,DES_IN);
+					l=uufread(buf,1,BUFSIZE,DES_IN,&uu_done, &uu_valid, &uu_start );
 				else
 					l=fread(buf,1,BUFSIZE,DES_IN);
 				ex=0;
@@ -605,7 +611,7 @@ void doencryption()
 				}
 
 			if (uflag)
-				ll=uufread(&(buf[rem]),1,BUFSIZE,DES_IN);
+				ll=uufread(&(buf[rem]),1,BUFSIZE,DES_IN, &uu_done, &uu_valid, &uu_start );
 			else
 				ll=fread(&(buf[rem]),1,BUFSIZE,DES_IN);
 			ll+=rem;
@@ -640,7 +646,9 @@ void doencryption()
 				i+=j;
 				}
 			l=ll;
-			if ((l == 0) && feof(DES_IN)) break;
+			if ((l == 0) && feof(DES_IN)) {
+				break;
+			}
 			}
 		}
 	if (cflag)
@@ -657,7 +665,7 @@ void doencryption()
 		for (i=0; i<8; i++)
 			fprintf(CKSUM_OUT,"%02X",cksum[i]);
 		fprintf(CKSUM_OUT,"\n");
-		if (l) fclose(CKSUM_OUT);
+		if (l) FCLOSE(CKSUM_OUT);
 		}
 problems:
 	memset(buf,0,sizeof(buf));
@@ -753,18 +761,16 @@ FILE *fp;
 	fwrite(end,1,strlen(end),fp);
 	}
 
-int uufread(out, size, num, fp)
-unsigned char *out;
-int size; /* should always be > ~ 60; I actually ignore this parameter :-) */
-unsigned int num;
-FILE *fp;
+int uufread( unsigned char *out, int size, unsigned int num,
+		FILE *fp, int *pdone, int *pvalid, int *pstart )
 	{
 	int i,j,tot;
-	static int done=0;
-	static int valid=0;
-	static int start=1;
 
-	if (start)
+	if ( !pdone || !pvalid || !pstart ) {
+		return -1;
+	}
+
+	if ( *pstart)
 		{
 		for (;;)
 			{
@@ -777,16 +783,20 @@ FILE *fp;
 				}
 			if (strncmp((char *)b,"begin ",6) == 0) break;
 			}
-		start=0;
+		*pstart=0;
 		}
-	if (done) return(0);
+
+	if ( *pdone) return(0);
+
 	tot=0;
-	if (valid)
+
+	if ( *pvalid )
 		{
-		memcpy(out,bb,(unsigned int)valid);
-		tot=valid;
-		valid=0;
+		memcpy(out,bb,(unsigned int)(*pvalid) );
+		tot=*pvalid;
+		*pvalid=0;
 		}
+
 	for (;;)
 		{
 		b[0]='\0';
@@ -795,11 +805,12 @@ FILE *fp;
 		i=strlen((char *)b);
 		if ((b[0] == 'e') && (b[1] == 'n') && (b[2] == 'd'))
 			{
-			done=1;
+			*pdone=1;
 			while (!feof(fp))
 				{
 				fgets((char *)b,300,fp);
 				}
+			fgets((char *)b,300,fp);
 			break;
 			}
 		i=uudecode(b,i,bb);
@@ -811,7 +822,7 @@ FILE *fp;
 			memcpy(&(out[tot]),bb,(unsigned int)j);
 			tot+=j;
 			memcpy(bb,&(bb[j]),(unsigned int)i-j);
-			valid=i-j;
+			*pvalid=i-j;
 			break;
 			}
 		memcpy(&(out[tot]),bb,(unsigned int)i);
