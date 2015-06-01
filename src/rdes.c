@@ -465,8 +465,8 @@ callRDES( unsigned int *pflags, char  **pkey,
 	}
 #endif
 
-	fprintf( stderr, "vflag[%i] cflag[%i] eflag[%i] dflag[%i] kflag[%i] hflag[%i] bflag[%i] fflag[%i] sflag[%i] uflag[%i] flag3[%i] doencrypt[%i]\n",
-		vflag,cflag,eflag,dflag,kflag,hflag,bflag,fflag,sflag,uflag,flag3,do_encrypt );
+/*	fprintf( stderr, "vflag[%i] cflag[%i] eflag[%i] dflag[%i] kflag[%i] hflag[%i] bflag[%i] fflag[%i] sflag[%i] uflag[%i] flag3[%i] doencrypt[%i]\n",
+		vflag,cflag,eflag,dflag,kflag,hflag,bflag,fflag,sflag,uflag,flag3,do_encrypt ); */
 	
 
 	doencryption();
