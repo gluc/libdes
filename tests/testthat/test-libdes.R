@@ -75,7 +75,9 @@ test_that("roundtrip wrapper ECB", {
 
 test_that("roundtrip wrapper UUENC", {
   
-  #TestDES(UUENC = TRUE)
+  TestDES(UUENC = TRUE, uuencFile = "test.txt")
+  #we had the problem that 2 subsequent calls crashed R
+  TestDES(UUENC = TRUE, uuencFile = "test.txt")
   
 })
 

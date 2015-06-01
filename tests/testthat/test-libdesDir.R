@@ -13,7 +13,7 @@ test_that("Call directly", {
   rawToChar(encrypted)
   
   decrypted <- .Call("rdesDecrypt", key, encrypted)
-
+  
   result <- rawToChar(decrypted)
   
   expect_equal(result, myText)
@@ -22,7 +22,7 @@ test_that("Call directly", {
 
 
 test_that("Call Wrappers", {
- 
+  
   myText <- "Heute gibt es Tigerentensalat!"
   key = "y2KjsdE39FJ"
   
