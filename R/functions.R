@@ -14,11 +14,11 @@
 EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, uuencFileName = "") {
   
   opts <- GetOptions(ENCRYPT = TRUE, 
-                     SUNOS, 
-                     HEX_KEY,
+                     SUNOS = SUNOS, 
+                     HEX_KEY = HEX_KEY,
                      THREEDES = FALSE, 
-                     ECB, 
-                     UUENC)
+                     ECB = ECB, 
+                     UUENC = UUENC)
     
   .C( "callRDES", opts, key, sourceFile, encryptedFile, "", uuencFileName )
 }
@@ -38,11 +38,11 @@ EncryptFile <- function(sourceFile, encryptedFile, key, SUNOS = FALSE, HEX_KEY =
 DecryptFile <- function(sourceFile, decryptedFile, key, SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE) {
   
   opts <- GetOptions(ENCRYPT = FALSE, 
-                     SUNOS, 
-                     HEX_KEY,
+                     SUNOS = SUNOS, 
+                     HEX_KEY = HEX_KEY,
                      THREEDES = FALSE, 
-                     ECB, 
-                     UUENC)
+                     ECB = ECB, 
+                     UUENC = UUENC)
   
   .C( "callRDES", opts, key, sourceFile, decryptedFile, "", "")
 }

@@ -14,7 +14,14 @@ TestDES <- function(SUNOS = FALSE, HEX_KEY = FALSE, ECB = FALSE, UUENC = FALSE, 
   
   #call the new method "callRDES" in the libdes.dll
   
-  result <- EncryptFile(fileIn, fileEnc, key, SUNOS, HEX_KEY, ECB, UUENC)
+  result <- EncryptFile(sourceFile = fileIn,
+                        encryptedFile =  fileEnc,
+                        key, 
+                        SUNOS = SUNOS, 
+                        HEX_KEY = HEX_KEY, 
+                        ECB = ECB, 
+                        UUENC = UUENC,
+                        uuencFile = uuencFile)
   
   # now decrypt
   
