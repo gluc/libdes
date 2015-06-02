@@ -97,7 +97,7 @@
 #ifndef NOPROTO
 void usage(void);
 void doencryption(void);
-int uufwrite(unsigned char *data, int size, unsigned int num, FILE *fp);
+int uufwrite(unsigned char *data, int size, unsigned int num, FILE *fp, int *pstart );
 void uufwriteEnd(FILE *fp);
 int uufread( unsigned char *out, int size, unsigned int num,
 		FILE *fp, int *pdone, int *pvalid, int *pstart );
@@ -384,6 +384,10 @@ void doencryption()
 		}
 #endif
 
+	if ( uflag ){ 
+		uubufnum = 0;
+	}
+
 	if (hflag)
 		{
 		j=(flag3?16:8);
@@ -540,7 +544,7 @@ void doencryption()
 				{
 				if (uflag)
 					j=uufwrite(obuf,1,(unsigned int)l-i,
-						DES_OUT);
+						DES_OUT, &uu_start );
 				else
 					j=fwrite(obuf,1,(unsigned int)l-i,
 						DES_OUT);
@@ -683,24 +687,20 @@ problems:
 	if (Exit) return;
 	}
 
-int uufwrite(data, size, num, fp)
-unsigned char *data;
-int size;
-unsigned int num;
-FILE *fp;
-      
-     /* We ignore this parameter but it should be > ~50 I believe */
-   
-    
+int uufwrite(unsigned char *data, int size, unsigned int num, FILE *fp, int *pstart )
 	{
 	int i,j,left,rem,ret=num;
-	static int start=1;
 
-	if (start)
+	if ( !pstart ) {
+		fprintf(stderr,"(%s:%i): invalid args\n", __FILE__, __LINE__ );
+		return -1;
+	}
+
+	if (*pstart)
 		{
 		fprintf(fp,"begin 600 %s\n",
 			(uuname[0] == '\0')?"text.d":uuname);
-		start=0;
+		*pstart=0;
 		}
 
 	if (uubufnum)
